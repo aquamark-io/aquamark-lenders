@@ -3,7 +3,6 @@ import fetch from 'node-fetch';
 import { PDFDocument } from 'pdf-lib';
 import QRCode from 'qrcode';
 import dayjs from 'dayjs';
-import dotenv from 'dotenv';
 
 dotenv.config();
 
