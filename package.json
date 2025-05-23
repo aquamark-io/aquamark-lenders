@@ -1,0 +1,16 @@
+{
+  "name": "aquamark-lenders",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.10",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.12",
+    "pdf-lib": "^1.17.1",
+    "qrcode": "^1.5.3"
+  }
+}
