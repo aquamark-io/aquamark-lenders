@@ -1,11 +1,23 @@
-const express = require('express');
-const fetch = require('node-fetch');
-const { PDFDocument, rgb } = require('pdf-lib');
-const QRCode = require('qrcode');
-const dayjs = require('dayjs');
+import express from 'express';
+import fetch from 'node-fetch';
+import { PDFDocument } from 'pdf-lib';
+import QRCode from 'qrcode';
+import dayjs from 'dayjs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 app.use(express.json({ limit: '25mb' }));
+
+// Optional: API key check (set API_KEY_SECRET in Render env vars)
+app.use((req, res, next) => {
+  const incomingKey = req.headers['x-api-key'];
+  if (process.env.API_KEY_SECRET && incomingKey !== process.env.API_KEY_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+});
 
 app.post('/tag', async (req, res) => {
   try {
@@ -46,4 +58,4 @@ app.post('/tag', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Aquamark Lenders running on port ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Aquamark Lenders running on port ${PORT}`));
