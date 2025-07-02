@@ -60,13 +60,16 @@ app.post("/watermark", async (req, res) => {
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
   const qrImage = await pdfDoc.embedPng(qrImageRes.data);
 
-  // Placement settings
+  // === Placement Settings ===
   const qrSize = 20;
-  const logoWidth = 80;
-  const logoHeight = 20;
-
   const qrX = 15;
   const qrY = 15;
+
+  // Scaled logo placement (30px height globally)
+  const targetHeight = 30;
+  const nativeWidth = logoImage.width;
+  const nativeHeight = logoImage.height;
+  const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
   const logoX = qrX + qrSize + 10;
   const logoY = qrY;
 
@@ -83,8 +86,8 @@ app.post("/watermark", async (req, res) => {
     page.drawImage(logoImage, {
       x: logoX,
       y: logoY,
-      width: logoWidth,
-      height: logoHeight,
+      width: targetWidth,
+      height: targetHeight,
       opacity: 0.4
     });
   }
