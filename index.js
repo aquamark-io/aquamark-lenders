@@ -91,7 +91,7 @@ const logoImage = await pdfDoc.embedPng(logoBytes);
 const qrY = height - padding - qrSize;
 
     const logoX = qrX - targetWidth - 20; // space between logo and QR
-    const logoY = height - padding - targetHeight;
+    const logoY = height - padding - targetHeight + 10;
 
     page.drawImage(logoImage, {
       x: logoX,
