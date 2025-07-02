@@ -77,7 +77,7 @@ app.post("/watermark", async (req, res) => {
     const qrY = height - padding - qrSize;
 
     const logoX = qrX - targetWidth - 20; // space between logo and QR
-    const logoY = height - padding - targetHeight + 70;
+    const logoY = height - padding - targetHeight + 100;
 
     page.drawImage(logoImage, {
       x: logoX,
