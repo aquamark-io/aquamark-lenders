@@ -65,12 +65,12 @@ app.post("/watermark", async (req, res) => {
     const { width, height } = page.getSize();
 
     // Set consistent logo height and scale width
-    const targetHeight = 100;
+    const targetHeight = 200;
     const nativeWidth = logoImage.width;
     const nativeHeight = logoImage.height;
     const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
 
-    const qrSize = 20;
+    const qrSize = 40;
     const padding = 15;
 
     const qrX = width - padding - qrSize;
