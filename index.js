@@ -60,37 +60,34 @@ app.post("/watermark", async (req, res) => {
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
   const qrImage = await pdfDoc.embedPng(qrImageRes.data);
 
-  // === Placement Coordinates ===
+  // Placement settings
   const qrSize = 20;
-  const logoWidth = 120;
-  const logoHeight = 120;
+  const logoWidth = 80;
+  const logoHeight = 20;
+
   const qrX = 15;
   const qrY = 15;
-  const logoX = qrX + qrSize + 5;
-  const logoY = qrY + qrSize - logoHeight;  // align bottom of logo with QR
+  const logoX = qrX + qrSize + 10;
+  const logoY = qrY;
 
-for (const page of pdfDoc.getPages()) {
-  const { width, height } = page.getSize();
-
-  // Draw QR code bottom-left
+  // Draw on each page
   for (const page of pdfDoc.getPages()) {
-  page.drawImage(qrImage, {
-    x: qrX,
-    y: qrY,
-    width: qrSize,
-    height: qrSize,
-    opacity: 0.4
-  });
+    page.drawImage(qrImage, {
+      x: qrX,
+      y: qrY,
+      width: qrSize,
+      height: qrSize,
+      opacity: 0.4
+    });
 
-  page.drawImage(logoImage, {
-    x: logoX,
-    y: logoY,
-    width: logoWidth,
-    height: logoHeight,
-    opacity: 0.4
-  });
-}
-
+    page.drawImage(logoImage, {
+      x: logoX,
+      y: logoY,
+      width: logoWidth,
+      height: logoHeight,
+      opacity: 0.4
+    });
+  }
 
   // Usage tracking
   const now = new Date();
