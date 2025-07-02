@@ -65,8 +65,8 @@ app.post("/watermark", async (req, res) => {
   const qrX = 15;
   const qrY = 15;
 
-  // Scaled logo placement (30px height globally)
-  const targetHeight = 30;
+  // Scaled logo placement (100px height globally)
+  const targetHeight = 100;
   const nativeWidth = logoImage.width;
   const nativeHeight = logoImage.height;
   const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
