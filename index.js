@@ -72,20 +72,20 @@ app.post("/watermark", async (req, res) => {
   // Draw QR + logo on each page
   for (const page of pdfDoc.getPages()) {
     page.drawImage(qrImage, {
-      x: qrX,
-      y: qrY,
-      width: qrSize,
-      height: qrSize,
-      opacity: 0.4
-    });
+  x: qrX,
+  y: qrY,
+  width: qrSize,
+  height: qrSize,
+  opacity: 0.4
+});
 
-    page.drawImage(logoImage, {
-      x: logoX,
-      y: logoY,
-      width: logoWidth,
-      height: logoHeight,
-      opacity: 0.4
-    });
+page.drawImage(logoImage, {
+  x: logoX,
+  y: logoY,
+  width: logoWidth,
+  height: logoHeight,
+  opacity: 0.4
+});
   }
 
   // Usage tracking
