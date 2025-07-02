@@ -64,11 +64,20 @@ app.post("/watermark", async (req, res) => {
   for (const page of pdfDoc.getPages()) {
     const { width, height } = page.getSize();
 
-    // Set consistent logo height and scale width
-    const targetHeight = 300;
-    const nativeWidth = logoImage.width;
-    const nativeHeight = logoImage.height;
-    const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
+    // Normalize logo into fixed bounding box
+    const maxLogoWidth = 200;
+    const maxLogoHeight = 100;
+
+    const originalWidth = logoImage.width;
+    const originalHeight = logoImage.height;
+
+    let targetWidth = maxLogoWidth;
+    let targetHeight = (originalHeight / originalWidth) * targetWidth;
+
+    if (targetHeight > maxLogoHeight) {
+      targetHeight = maxLogoHeight;
+      targetWidth = (originalWidth / originalHeight) * targetHeight;
+    }
 
     const qrSize = 40;
     const padding = 20;
@@ -77,7 +86,7 @@ app.post("/watermark", async (req, res) => {
     const qrY = height - padding - qrSize;
 
     const logoX = qrX - targetWidth - 20; // space between logo and QR
-    const logoY = height - padding - targetHeight + 100;
+    const logoY = height - padding - targetHeight;
 
     page.drawImage(logoImage, {
       x: logoX,
