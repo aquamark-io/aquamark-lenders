@@ -73,20 +73,20 @@ for (const page of pdfDoc.getPages()) {
   const { width, height } = page.getSize();
 
   // Draw QR code bottom-left
+  for (const page of pdfDoc.getPages()) {
   page.drawImage(qrImage, {
-    x: 15,
-    y: 15,
-    width: 20,
-    height: 20,
+    x: qrX,
+    y: qrY,
+    width: qrSize,
+    height: qrSize,
     opacity: 0.4
   });
 
-  // TEMP: Draw logo centered near middle of page
   page.drawImage(logoImage, {
-    x: width / 2 - 40,
-    y: height / 2 - 40,
-    width: 80,
-    height: 80,
+    x: logoX,
+    y: logoY,
+    width: logoWidth,
+    height: logoHeight,
     opacity: 0.4
   });
 }
