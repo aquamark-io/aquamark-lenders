@@ -66,12 +66,13 @@ app.post("/watermark", async (req, res) => {
   const qrY = 15;
 
   // Scaled logo placement (100px height globally)
-  const targetHeight = 100;
-  const nativeWidth = logoImage.width;
-  const nativeHeight = logoImage.height;
-  const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
-  const logoX = qrX + qrSize + 10;
-  const logoY = qrY;
+  const targetHeight = 100;  // or 120 if you prefer
+const nativeWidth = logoImage.width;
+const nativeHeight = logoImage.height;
+const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
+
+const logoX = qrX + qrSize + 10;
+const logoY = qrY + qrSize - targetHeight;  // <- ensures bottom-aligned
 
   // Draw on each page
   for (const page of pdfDoc.getPages()) {
