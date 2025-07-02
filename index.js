@@ -52,7 +52,7 @@ app.post("/watermark", async (req, res) => {
   const logoBytes = await logoRes.arrayBuffer();
   const logoImage = await pdfDoc.embedPng(logoBytes);
 
-  // QR code
+  // Generate QR code
   const today = new Date().toISOString().split("T")[0];
   const payload = encodeURIComponent(`ProtectedByAquamark|${company}|${name}|${today}`);
   const qrText = `https://aquamark.io/q.html?data=${payload}`;
@@ -60,27 +60,32 @@ app.post("/watermark", async (req, res) => {
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
   const qrImage = await pdfDoc.embedPng(qrImageRes.data);
 
-  // Draw logo + QR on every page
+  // === Placement Coordinates ===
+  const qrSize = 20;
+  const logoWidth = 120;
+  const logoHeight = 120;
+  const qrX = 15;
+  const qrY = 15;
+  const logoX = qrX + qrSize + 5;
+  const logoY = qrY + qrSize - logoHeight;  // align bottom of logo with QR
+
+  // Draw QR + logo on each page
   for (const page of pdfDoc.getPages()) {
-  
- // Draw QR code (bottom-left)
-page.drawImage(qrImage, {
-  x: 15,
-  y: qrY,
-  width: qrSize,
-  height: qrSize,
-  opacity: 0.4
-});
+    page.drawImage(qrImage, {
+      x: qrX,
+      y: qrY,
+      width: qrSize,
+      height: qrSize,
+      opacity: 0.4
+    });
 
-// Draw logo to the right, bottom-aligned
-page.drawImage(logoImage, {
-  x: 15 + qrSize + 5,  // QR x + QR width + 5px gap
-  y: logoY,
-  width: 120,
-  height: logoHeight,
-  opacity: 0.4
-});
-
+    page.drawImage(logoImage, {
+      x: logoX,
+      y: logoY,
+      width: logoWidth,
+      height: logoHeight,
+      opacity: 0.4
+    });
   }
 
   // Usage tracking
