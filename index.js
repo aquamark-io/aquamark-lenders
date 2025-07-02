@@ -69,24 +69,28 @@ app.post("/watermark", async (req, res) => {
   const logoX = qrX + qrSize + 5;
   const logoY = qrY + qrSize - logoHeight;  // align bottom of logo with QR
 
-  // Draw QR + logo on each page
-  for (const page of pdfDoc.getPages()) {
-    page.drawImage(qrImage, {
-  x: qrX,
-  y: qrY,
-  width: qrSize,
-  height: qrSize,
-  opacity: 0.4
-});
+for (const page of pdfDoc.getPages()) {
+  const { width, height } = page.getSize();
 
-page.drawImage(logoImage, {
-  x: logoX,
-  y: logoY,
-  width: logoWidth,
-  height: logoHeight,
-  opacity: 0.4
-});
-  }
+  // Draw QR code bottom-left
+  page.drawImage(qrImage, {
+    x: 15,
+    y: 15,
+    width: 20,
+    height: 20,
+    opacity: 0.4
+  });
+
+  // TEMP: Draw logo centered near middle of page
+  page.drawImage(logoImage, {
+    x: width / 2 - 40,
+    y: height / 2 - 40,
+    width: 80,
+    height: 80,
+    opacity: 0.4
+  });
+}
+
 
   // Usage tracking
   const now = new Date();
