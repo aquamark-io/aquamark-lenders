@@ -63,21 +63,21 @@ app.post("/watermark", async (req, res) => {
   // Draw logo + QR on every page
   for (const page of pdfDoc.getPages()) {
   
-    // QR first (bottom-left)
+ // Draw QR code (bottom-left)
 page.drawImage(qrImage, {
   x: 15,
-  y: 15,
-  width: 20,
-  height: 20,
+  y: qrY,
+  width: qrSize,
+  height: qrSize,
   opacity: 0.4
 });
 
-// Logo to the right of QR
+// Draw logo to the right, bottom-aligned
 page.drawImage(logoImage, {
-  x: 40, // 15 (QR x) + 20 (QR width) + 5 (spacing)
-  y: 15,
+  x: 15 + qrSize + 5,  // QR x + QR width + 5px gap
+  y: logoY,
   width: 120,
-  height: 120,
+  height: logoHeight,
   opacity: 0.4
 });
 
