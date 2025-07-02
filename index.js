@@ -44,13 +44,18 @@ app.post("/watermark", async (req, res) => {
 
   const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
-  // Fetch logo
-  const logoPath = `${user_email}.png`;
-  const { data: logoData } = supabase.storage.from("lenders").getPublicUrl(logoPath);
-  const logoRes = await fetch(logoData.publicUrl);
-  if (!logoRes.ok) return res.status(404).send("Logo fetch failed");
-  const logoBytes = await logoRes.arrayBuffer();
-  const logoImage = await pdfDoc.embedPng(logoBytes);
+  // Fetch logo with cache busting
+const logoPath = `${user_email}.png`;
+const { data: logoData } = supabase.storage.from("lenders").getPublicUrl(logoPath);
+if (!logoData?.publicUrl) return res.status(404).send("Logo URL fetch failed");
+
+const logoUrl = `${logoData.publicUrl}?t=${Date.now()}`;
+const logoRes = await fetch(logoUrl);
+if (!logoRes.ok) return res.status(404).send("Logo fetch failed");
+
+const logoBytes = await logoRes.arrayBuffer();
+const logoImage = await pdfDoc.embedPng(logoBytes);
+
 
   // Generate QR code
   const today = new Date().toISOString().split("T")[0];
