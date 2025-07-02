@@ -60,35 +60,34 @@ app.post("/watermark", async (req, res) => {
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
   const qrImage = await pdfDoc.embedPng(qrImageRes.data);
 
-  // === Placement Settings ===
+  // Placement settings
+  const targetHeight = 100;
+  const nativeWidth = logoImage.width;
+  const nativeHeight = logoImage.height;
+  const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
+
+  const logoX = 15;
+  const logoY = 15;
+
   const qrSize = 20;
-  const qrX = 15;
-  const qrY = 15;
-
-  // Scaled logo placement (100px height globally)
-  const targetHeight = 100;  // or 120 if you prefer
-const nativeWidth = logoImage.width;
-const nativeHeight = logoImage.height;
-const targetWidth = (targetHeight / nativeHeight) * nativeWidth;
-
-const logoX = qrX + qrSize + 10;
-const logoY = qrY + qrSize - targetHeight;  // <- ensures bottom-aligned
+  const qrX = logoX + targetWidth + 10;
+  const qrY = logoY + (targetHeight - qrSize) / 2;
 
   // Draw on each page
   for (const page of pdfDoc.getPages()) {
-    page.drawImage(qrImage, {
-      x: qrX,
-      y: qrY,
-      width: qrSize,
-      height: qrSize,
-      opacity: 0.4
-    });
-
     page.drawImage(logoImage, {
       x: logoX,
       y: logoY,
       width: targetWidth,
       height: targetHeight,
+      opacity: 0.4
+    });
+
+    page.drawImage(qrImage, {
+      x: qrX,
+      y: qrY,
+      width: qrSize,
+      height: qrSize,
       opacity: 0.4
     });
   }
