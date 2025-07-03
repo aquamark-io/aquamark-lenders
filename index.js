@@ -3,7 +3,7 @@ const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const { exec } = require("child_process");
 const fs = require("fs");
-const { PDFDocument, degrees } = require("pdf-lib");
+const { PDFDocument } = require("pdf-lib");
 const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
 const QRCode = require("qrcode");
@@ -15,13 +15,32 @@ const port = process.env.PORT;
 const TABLE_NAME = "lenders";
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
-
 app.use(cors());
 app.use(fileUpload());
 
+// === Rate limit tracking for test key ===
+let testKeyUsage = [];
+const MAX_TEST_CALLS_PER_HOUR = 100;
+
 app.post("/watermark", async (req, res) => {
   const apiKey = req.headers.authorization?.split(" ")[1];
-  if (apiKey !== process.env.AQUAMARK_API_KEY) return res.status(403).send("Unauthorized");
+  const validKeys = [process.env.AQUAMARK_API_KEY, process.env.AQUAMARK_TEST_KEY];
+
+  if (!validKeys.includes(apiKey)) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  const isTestKey = apiKey === process.env.AQUAMARK_TEST_KEY;
+  if (isTestKey) {
+    const now = Date.now();
+    testKeyUsage = testKeyUsage.filter(ts => now - ts < 60 * 60 * 1000);
+
+    if (testKeyUsage.length >= MAX_TEST_CALLS_PER_HOUR) {
+      return res.status(429).send("Test key rate limit reached (100 per hour). Please try again later.");
+    }
+
+    testKeyUsage.push(now);
+  }
 
   const { user_email, company = "unknown", name = "unknown" } = req.body;
   const file = req.files?.file;
@@ -44,7 +63,6 @@ app.post("/watermark", async (req, res) => {
 
   const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
-  // Fetch logo with cache busting
   const logoPath = `${user_email}.png`;
   const { data: logoData } = supabase.storage.from("lenders").getPublicUrl(logoPath);
   if (!logoData?.publicUrl) return res.status(404).send("Logo URL fetch failed");
@@ -55,7 +73,6 @@ app.post("/watermark", async (req, res) => {
 
   const logoBytes = await logoRes.arrayBuffer();
 
-  // Generate QR code
   const today = new Date().toISOString().split("T")[0];
   const payload = encodeURIComponent(`ProtectedByAquamark|${company}|${name}|${today}`);
   const qrText = `https://aquamark.io/q.html?data=${payload}`;
@@ -63,7 +80,6 @@ app.post("/watermark", async (req, res) => {
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
   const qrBytes = qrImageRes.data;
 
-  // Build watermark overlay (logo + QR in top-right, embedded as background)
   const overlayDoc = await PDFDocument.create();
   const [overlayPage] = [overlayDoc.addPage([pdfDoc.getPage(0).getWidth(), pdfDoc.getPage(0).getHeight()])];
 
@@ -73,13 +89,11 @@ app.post("/watermark", async (req, res) => {
 
   const maxLogoWidth = 240;
   const maxLogoHeight = 120;
-
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
   let targetWidth = maxLogoWidth;
   let targetHeight = (originalHeight / originalWidth) * targetWidth;
-
   if (targetHeight > maxLogoHeight) {
     targetHeight = maxLogoHeight;
     targetWidth = (originalWidth / originalHeight) * targetHeight;
@@ -87,10 +101,8 @@ app.post("/watermark", async (req, res) => {
 
   const qrSize = 40;
   const padding = 10;
-
   const qrX = width - padding - qrSize;
   const qrY = height - padding - qrSize;
-
   const logoX = qrX - targetWidth - 10;
   const logoY = height - padding - targetHeight + 5;
 
@@ -99,7 +111,7 @@ app.post("/watermark", async (req, res) => {
     y: logoY,
     width: targetWidth,
     height: targetHeight,
-    opacity: 0.4
+    opacity: 0.4,
   });
 
   overlayPage.drawImage(embeddedQR, {
@@ -107,7 +119,7 @@ app.post("/watermark", async (req, res) => {
     y: qrY,
     width: qrSize,
     height: qrSize,
-    opacity: 0.4
+    opacity: 0.4,
   });
 
   const overlayBytes = await overlayDoc.save();
@@ -118,7 +130,6 @@ app.post("/watermark", async (req, res) => {
     page.drawPage(overlayXObject, { x: 0, y: 0, width, height });
   });
 
-  // Usage tracking
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
