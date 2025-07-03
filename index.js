@@ -85,8 +85,8 @@ app.post("/watermark", async (req, res) => {
     targetWidth = (originalWidth / originalHeight) * targetHeight;
   }
 
-  const qrSize = 60;
-  const padding = 30;
+  const qrSize = 30;
+  const padding = 50;
 
   const qrX = width - padding - qrSize;
   const qrY = height - padding - qrSize;
