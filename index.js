@@ -71,8 +71,8 @@ app.post("/watermark", async (req, res) => {
   const embeddedQR = await overlayDoc.embedPng(qrBytes);
   const { width, height } = overlayPage.getSize();
 
-  const maxLogoWidth = 200;
-  const maxLogoHeight = 100;
+  const maxLogoWidth = 240;
+  const maxLogoHeight = 120;
 
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
