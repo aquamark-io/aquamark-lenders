@@ -3,7 +3,7 @@ const fileUpload = require("express-fileupload");
 const cors = require("cors");
 const { exec } = require("child_process");
 const fs = require("fs");
-const { PDFDocument } = require("pdf-lib");
+const { PDFDocument, degrees } = require("pdf-lib");
 const fetch = require("node-fetch");
 const { createClient } = require("@supabase/supabase-js");
 const QRCode = require("qrcode");
@@ -45,17 +45,15 @@ app.post("/watermark", async (req, res) => {
   const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
 
   // Fetch logo with cache busting
-const logoPath = `${user_email}.png`;
-const { data: logoData } = supabase.storage.from("lenders").getPublicUrl(logoPath);
-if (!logoData?.publicUrl) return res.status(404).send("Logo URL fetch failed");
+  const logoPath = `${user_email}.png`;
+  const { data: logoData } = supabase.storage.from("lenders").getPublicUrl(logoPath);
+  if (!logoData?.publicUrl) return res.status(404).send("Logo URL fetch failed");
 
-const logoUrl = `${logoData.publicUrl}?t=${Date.now()}`;
-const logoRes = await fetch(logoUrl);
-if (!logoRes.ok) return res.status(404).send("Logo fetch failed");
+  const logoUrl = `${logoData.publicUrl}?t=${Date.now()}`;
+  const logoRes = await fetch(logoUrl);
+  if (!logoRes.ok) return res.status(404).send("Logo fetch failed");
 
-const logoBytes = await logoRes.arrayBuffer();
-const logoImage = await pdfDoc.embedPng(logoBytes);
-
+  const logoBytes = await logoRes.arrayBuffer();
 
   // Generate QR code
   const today = new Date().toISOString().split("T")[0];
@@ -63,52 +61,62 @@ const logoImage = await pdfDoc.embedPng(logoBytes);
   const qrText = `https://aquamark.io/q.html?data=${payload}`;
   const qrDataUrl = await QRCode.toDataURL(qrText, { margin: 0, scale: 5 });
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
-  const qrImage = await pdfDoc.embedPng(qrImageRes.data);
+  const qrBytes = qrImageRes.data;
 
-  // Placement on each page
-  for (const page of pdfDoc.getPages()) {
-    const { width, height } = page.getSize();
+  // Build watermark overlay (logo + QR in top-right, embedded as background)
+  const overlayDoc = await PDFDocument.create();
+  const [overlayPage] = [overlayDoc.addPage([pdfDoc.getPage(0).getWidth(), pdfDoc.getPage(0).getHeight()])];
 
-    // Normalize logo into fixed bounding box
-    const maxLogoWidth = 200;
-    const maxLogoHeight = 100;
+  const embeddedLogo = await overlayDoc.embedPng(logoBytes);
+  const embeddedQR = await overlayDoc.embedPng(qrBytes);
+  const { width, height } = overlayPage.getSize();
 
-    const originalWidth = logoImage.width;
-    const originalHeight = logoImage.height;
+  const maxLogoWidth = 200;
+  const maxLogoHeight = 100;
 
-    let targetWidth = maxLogoWidth;
-    let targetHeight = (originalHeight / originalWidth) * targetWidth;
+  const originalWidth = embeddedLogo.width;
+  const originalHeight = embeddedLogo.height;
 
-    if (targetHeight > maxLogoHeight) {
-      targetHeight = maxLogoHeight;
-      targetWidth = (originalWidth / originalHeight) * targetHeight;
-    }
+  let targetWidth = maxLogoWidth;
+  let targetHeight = (originalHeight / originalWidth) * targetWidth;
 
-    const qrSize = 40;
-    const padding = 20;
-
-    const qrX = width - padding - qrSize;
-const qrY = height - padding - qrSize;
-
-    const logoX = qrX - targetWidth - 10; // space between logo and QR
-    const logoY = height - padding - targetHeight + 10;
-
-    page.drawImage(logoImage, {
-      x: logoX,
-      y: logoY,
-      width: targetWidth,
-      height: targetHeight,
-      opacity: 0.4
-    });
-
-    page.drawImage(qrImage, {
-      x: qrX,
-      y: qrY,
-      width: qrSize,
-      height: qrSize,
-      opacity: 0.4
-    });
+  if (targetHeight > maxLogoHeight) {
+    targetHeight = maxLogoHeight;
+    targetWidth = (originalWidth / originalHeight) * targetHeight;
   }
+
+  const qrSize = 40;
+  const padding = 20;
+
+  const qrX = width - padding - qrSize;
+  const qrY = height - padding - qrSize;
+
+  const logoX = qrX - targetWidth - 10;
+  const logoY = height - padding - targetHeight + 10;
+
+  overlayPage.drawImage(embeddedLogo, {
+    x: logoX,
+    y: logoY,
+    width: targetWidth,
+    height: targetHeight,
+    opacity: 0.4
+  });
+
+  overlayPage.drawImage(embeddedQR, {
+    x: qrX,
+    y: qrY,
+    width: qrSize,
+    height: qrSize,
+    opacity: 0.4
+  });
+
+  const overlayBytes = await overlayDoc.save();
+  const overlayLoaded = await PDFDocument.load(overlayBytes);
+  const [overlayXObject] = await pdfDoc.embedPages([overlayLoaded.getPage(0)]);
+
+  pdfDoc.getPages().forEach((page) => {
+    page.drawPage(overlayXObject, { x: 0, y: 0, width, height });
+  });
 
   // Usage tracking
   const now = new Date();
