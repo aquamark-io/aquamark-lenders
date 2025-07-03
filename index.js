@@ -92,7 +92,7 @@ app.post("/watermark", async (req, res) => {
   const qrY = height - padding - qrSize;
 
   const logoX = qrX - targetWidth - 10;
-  const logoY = height - padding - targetHeight + 10;
+  const logoY = height - padding - targetHeight + 5;
 
   overlayPage.drawImage(embeddedLogo, {
     x: logoX,
