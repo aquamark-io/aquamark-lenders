@@ -88,8 +88,8 @@ app.post("/watermark", async (req, res) => {
   const { width, height } = overlayPage.getSize();
 
   // === UPDATED LOGO PLACEMENT AND SIZE ===
-  const maxLogoWidth = 480;
-  const maxLogoHeight = 240;
+  const maxLogoWidth = 400;
+  const maxLogoHeight = 200;
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
@@ -108,7 +108,7 @@ app.post("/watermark", async (req, res) => {
     y: logoY,
     width: targetWidth,
     height: targetHeight,
-    opacity: 0.6,
+    opacity: 0.9,
   });
 
   const qrSize = 30;
