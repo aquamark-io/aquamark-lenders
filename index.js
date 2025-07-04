@@ -108,7 +108,7 @@ app.post("/watermark", async (req, res) => {
     y: logoY,
     width: targetWidth,
     height: targetHeight,
-    opacity: 0.9,
+    opacity: 0.2,
   });
 
   const qrSize = 30;
