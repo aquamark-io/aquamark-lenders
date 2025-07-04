@@ -87,8 +87,9 @@ app.post("/watermark", async (req, res) => {
   const embeddedQR = await overlayDoc.embedPng(qrBytes);
   const { width, height } = overlayPage.getSize();
 
-  const maxLogoWidth = 240;
-  const maxLogoHeight = 120;
+  // === UPDATED LOGO PLACEMENT AND SIZE ===
+  const maxLogoWidth = 480;
+  const maxLogoHeight = 240;
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
@@ -99,20 +100,21 @@ app.post("/watermark", async (req, res) => {
     targetWidth = (originalWidth / originalHeight) * targetHeight;
   }
 
-  const qrSize = 30;
-  const padding = 10;
-  const qrX = width - padding - qrSize;
-  const qrY = height - padding - qrSize;
-  const logoX = qrX - targetWidth - 10;
-  const logoY = height - padding - targetHeight + 5;
+  const logoX = (width - targetWidth) / 2;
+  const logoY = height - targetHeight - 20;
 
   overlayPage.drawImage(embeddedLogo, {
     x: logoX,
     y: logoY,
     width: targetWidth,
     height: targetHeight,
-    opacity: 0.4,
+    opacity: 0.6,
   });
+
+  const qrSize = 30;
+  const padding = 10;
+  const qrX = width - padding - qrSize;
+  const qrY = height - padding - qrSize;
 
   overlayPage.drawImage(embeddedQR, {
     x: qrX,
