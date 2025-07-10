@@ -88,8 +88,8 @@ app.post("/watermark", async (req, res) => {
   const { width, height } = overlayPage.getSize();
 
   // === UPDATED LOGO PLACEMENT AND SIZE - 2 COLUMNS ===
-  const maxLogoWidth = 100;  // Reduced size slightly
-  const maxLogoHeight = 50;
+  const maxLogoWidth = 80;  // Reduced size again
+  const maxLogoHeight = 40;
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
@@ -100,21 +100,21 @@ app.post("/watermark", async (req, res) => {
     targetWidth = (originalWidth / originalHeight) * targetHeight;
   }
 
-  // Calculate column positions and spacing
-  const columnSpacing = width / 3;  // Divide width into 3 sections, use outer 2
-  const leftColumnX = columnSpacing / 2 - targetWidth / 2;
-  const rightColumnX = width - columnSpacing / 2 - targetWidth / 2;
+  // Calculate column positions closer to center
+  const columnSpacing = width / 4;  // Divide width into 4 sections, use middle 2
+  const leftColumnX = columnSpacing - targetWidth / 2;
+  const rightColumnX = width - columnSpacing - targetWidth / 2;
   
-  // Calculate vertical spacing for logos down the ENTIRE page (no margins)
-  const logoSpacing = 120;  // Reduced spacing for better coverage
-  const logosPerColumn = Math.ceil(height / logoSpacing) + 1;  // Ensure full coverage
+  // Calculate vertical spacing for logos down the ENTIRE page with room for more
+  const logoSpacing = 100;  // Reduced spacing for more logos
+  const logosPerColumn = Math.ceil(height / logoSpacing) + 2;  // Add room for top and bottom
 
   // Draw logos in 2 columns down the ENTIRE page
   for (let i = 0; i < logosPerColumn; i++) {
-    const logoY = height - (i * logoSpacing);
+    const logoY = height + targetHeight - (i * logoSpacing);  // Start above page for better coverage
     
     // Only draw if the logo would be visible on the page
-    if (logoY > -targetHeight) {
+    if (logoY > -targetHeight && logoY < height + targetHeight) {
       // Left column logo
       overlayPage.drawImage(embeddedLogo, {
         x: leftColumnX,
