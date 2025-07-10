@@ -121,7 +121,7 @@ app.post("/watermark", async (req, res) => {
         y: logoY,
         width: targetWidth,
         height: targetHeight,
-        opacity: 0.2,  // Increased opacity
+        opacity: 0.3,  // Increased opacity
       });
       
       // Right column logo
