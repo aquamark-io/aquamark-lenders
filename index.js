@@ -88,8 +88,8 @@ app.post("/watermark", async (req, res) => {
   const { width, height } = overlayPage.getSize();
 
   // === UPDATED LOGO PLACEMENT AND SIZE - 2 COLUMNS ===
-  const maxLogoWidth = 120;  // Smaller size for multiple logos
-  const maxLogoHeight = 60;
+  const maxLogoWidth = 100;  // Reduced size slightly
+  const maxLogoHeight = 50;
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
@@ -105,34 +105,34 @@ app.post("/watermark", async (req, res) => {
   const leftColumnX = columnSpacing / 2 - targetWidth / 2;
   const rightColumnX = width - columnSpacing / 2 - targetWidth / 2;
   
-  // Calculate vertical spacing for logos down the page
-  const topMargin = 100;
-  const bottomMargin = 100;
-  const availableHeight = height - topMargin - bottomMargin;
-  const logoSpacing = 150;  // Space between logos vertically
-  const logosPerColumn = Math.floor(availableHeight / logoSpacing);
+  // Calculate vertical spacing for logos down the ENTIRE page (no margins)
+  const logoSpacing = 120;  // Reduced spacing for better coverage
+  const logosPerColumn = Math.ceil(height / logoSpacing) + 1;  // Ensure full coverage
 
-  // Draw logos in 2 columns down the page
+  // Draw logos in 2 columns down the ENTIRE page
   for (let i = 0; i < logosPerColumn; i++) {
-    const logoY = height - topMargin - (i * logoSpacing);
+    const logoY = height - (i * logoSpacing);
     
-    // Left column logo
-    overlayPage.drawImage(embeddedLogo, {
-      x: leftColumnX,
-      y: logoY,
-      width: targetWidth,
-      height: targetHeight,
-      opacity: 0.15,  // Slightly more transparent since there are more logos
-    });
-    
-    // Right column logo
-    overlayPage.drawImage(embeddedLogo, {
-      x: rightColumnX,
-      y: logoY,
-      width: targetWidth,
-      height: targetHeight,
-      opacity: 0.15,
-    });
+    // Only draw if the logo would be visible on the page
+    if (logoY > -targetHeight) {
+      // Left column logo
+      overlayPage.drawImage(embeddedLogo, {
+        x: leftColumnX,
+        y: logoY,
+        width: targetWidth,
+        height: targetHeight,
+        opacity: 0.2,  // Increased opacity
+      });
+      
+      // Right column logo
+      overlayPage.drawImage(embeddedLogo, {
+        x: rightColumnX,
+        y: logoY,
+        width: targetWidth,
+        height: targetHeight,
+        opacity: 0.2,
+      });
+    }
   }
 
   const qrSize = 30;
