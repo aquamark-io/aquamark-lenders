@@ -107,11 +107,11 @@ app.post("/watermark", async (req, res) => {
   
   // Calculate vertical spacing for logos down the ENTIRE page with room for more
   const logoSpacing = 100;  // Reduced spacing for more logos
-  const logosPerColumn = Math.ceil(height / logoSpacing) + 2;  // Add room for top and bottom
+  const logosPerColumn = Math.ceil(height / logoSpacing) + 3;  // Add one more logo for top
 
   // Draw logos in 2 columns down the ENTIRE page
   for (let i = 0; i < logosPerColumn; i++) {
-    const logoY = height + (targetHeight / 2) - (i * logoSpacing);  // Shift up by half logo height
+    const logoY = height + targetHeight - (i * logoSpacing);  // Start one logo higher
     
     // Only draw if the logo would be visible on the page
     if (logoY > -targetHeight && logoY < height + targetHeight) {
