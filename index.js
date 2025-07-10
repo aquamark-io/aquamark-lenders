@@ -87,9 +87,9 @@ app.post("/watermark", async (req, res) => {
   const embeddedQR = await overlayDoc.embedPng(qrBytes);
   const { width, height } = overlayPage.getSize();
 
-  // === UPDATED LOGO PLACEMENT AND SIZE ===
-  const maxLogoWidth = 400;
-  const maxLogoHeight = 200;
+  // === UPDATED LOGO PLACEMENT AND SIZE - 2 COLUMNS ===
+  const maxLogoWidth = 120;  // Smaller size for multiple logos
+  const maxLogoHeight = 60;
   const originalWidth = embeddedLogo.width;
   const originalHeight = embeddedLogo.height;
 
@@ -100,16 +100,40 @@ app.post("/watermark", async (req, res) => {
     targetWidth = (originalWidth / originalHeight) * targetHeight;
   }
 
-  const logoX = (width - targetWidth) / 2;
-  const logoY = height - targetHeight - 20;
+  // Calculate column positions and spacing
+  const columnSpacing = width / 3;  // Divide width into 3 sections, use outer 2
+  const leftColumnX = columnSpacing / 2 - targetWidth / 2;
+  const rightColumnX = width - columnSpacing / 2 - targetWidth / 2;
+  
+  // Calculate vertical spacing for logos down the page
+  const topMargin = 100;
+  const bottomMargin = 100;
+  const availableHeight = height - topMargin - bottomMargin;
+  const logoSpacing = 150;  // Space between logos vertically
+  const logosPerColumn = Math.floor(availableHeight / logoSpacing);
 
-  overlayPage.drawImage(embeddedLogo, {
-    x: logoX,
-    y: logoY,
-    width: targetWidth,
-    height: targetHeight,
-    opacity: 0.2,
-  });
+  // Draw logos in 2 columns down the page
+  for (let i = 0; i < logosPerColumn; i++) {
+    const logoY = height - topMargin - (i * logoSpacing);
+    
+    // Left column logo
+    overlayPage.drawImage(embeddedLogo, {
+      x: leftColumnX,
+      y: logoY,
+      width: targetWidth,
+      height: targetHeight,
+      opacity: 0.15,  // Slightly more transparent since there are more logos
+    });
+    
+    // Right column logo
+    overlayPage.drawImage(embeddedLogo, {
+      x: rightColumnX,
+      y: logoY,
+      width: targetWidth,
+      height: targetHeight,
+      opacity: 0.15,
+    });
+  }
 
   const qrSize = 30;
   const padding = 10;
