@@ -111,7 +111,7 @@ app.post("/watermark", async (req, res) => {
 
   // Draw logos in 2 columns down the ENTIRE page
   for (let i = 0; i < logosPerColumn; i++) {
-    const logoY = height + targetHeight - (i * logoSpacing);  // Start above page for better coverage
+    const logoY = height + (targetHeight / 2) - (i * logoSpacing);  // Shift up by half logo height
     
     // Only draw if the logo would be visible on the page
     if (logoY > -targetHeight && logoY < height + targetHeight) {
@@ -121,7 +121,7 @@ app.post("/watermark", async (req, res) => {
         y: logoY,
         width: targetWidth,
         height: targetHeight,
-        opacity: 0.3,  // Increased opacity
+        opacity: 0.2,  // Increased opacity
       });
       
       // Right column logo
