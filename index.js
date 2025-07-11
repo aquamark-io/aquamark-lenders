@@ -42,7 +42,7 @@ app.post("/watermark", async (req, res) => {
     testKeyUsage.push(now);
   }
 
-  const { user_email, company = "unknown", name = "unknown" } = req.body;
+  const { user_email, name = "unknown" } = req.body;
   const file = req.files?.file;
   if (!user_email || !file) return res.status(400).send("Missing file or user_email");
 
@@ -74,7 +74,7 @@ app.post("/watermark", async (req, res) => {
   const logoBytes = await logoRes.arrayBuffer();
 
   const today = new Date().toISOString().split("T")[0];
-  const payload = encodeURIComponent(`ProtectedByAquamark|${company}|${name}|${today}`);
+  const payload = encodeURIComponent(`ProtectedByAquamark|${name}|${today}`);
   const qrText = `https://aquamark.io/q.html?data=${payload}`;
   const qrDataUrl = await QRCode.toDataURL(qrText, { margin: 0, scale: 5 });
   const qrImageRes = await axios.get(qrDataUrl, { responseType: "arraybuffer" });
